@@ -1,17 +1,4 @@
 {
-  "compilerOptions": {
-    "lib": ["ESNext"],
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "ES2015",
-    "allowJs": true,
-    "checkJs": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "lib",
-    "sourceMap": true,
-    "declaration": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.js"]
+  "extends": "./tsconfig.release.json",
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

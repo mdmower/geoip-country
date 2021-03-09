@@ -1,58 +1,42 @@
-import {Ip2lReader} from 'ip2ldb-reader';
+import {DbInterface} from './dbi';
 import {GwaLog} from '../log';
+import {Ip2lReader, Ip2lData} from 'ip2ldb-reader';
 import {assertPath} from '../utils';
+
+const LOG_TAG = 'GwaIP2Location';
 
 /**
  * Options for GwaIP2Location initialization
- * @typedef IP2LocationOptions
- * @property {string} dbPath Filesystem path to IP2Location database
- * @property {string} [subdivisionCsvPath] Filesystem path to IP2Location subdivision CSV database
  */
-
-/** @constant */
-const LOG_TAG = 'GwaIP2Location';
-
-export default class GwaIP2Location {
+interface IP2LocationOptions {
   /**
-   * @param {IP2LocationOptions|undefined} options IP2Location database and reader options
-   * @param {GwaLog} log Log instance
+   * Filesystem path to IP2Location database
    */
-  constructor(options, log) {
-    if (!options) {
-      throw new Error('Attempted to construct IP2Location without valid options');
-    }
+  dbPath: string;
+  /**
+   * Filesystem path to IP2Location subdivision CSV database
+   */
+  subdivisionCsvPath?: string;
+}
 
+class GwaIP2Location implements DbInterface {
+  private dbPath_: string;
+  private subdivisionCsvPath_: string | undefined;
+  private dbReader_: Ip2lReader | undefined;
+
+  constructor(options: IP2LocationOptions, private log_: GwaLog) {
     assertPath(options.dbPath);
 
-    /**
-     * @private
-     */
-    this.log_ = log;
-
-    /**
-     * @private
-     */
     this.dbPath_ = options.dbPath;
-
-    /**
-     * @private
-     */
     this.subdivisionCsvPath_ = options.subdivisionCsvPath;
-
-    /**
-     * @private
-     */
-    this.dbReader_ = null;
   }
 
   /**
    * Open IP2Location database and get reader
-   * @param {string} dbPath Filesystem path to IP2Location database
-   * @param {string} [subdivisionCsvPath] Filesystem path to IP2Location subdivision CSV database
-   * @returns {Promise<void>} Database reader
-   * @private
+   * @param dbPath Filesystem path to IP2Location database
+   * @param subdivisionCsvPath Filesystem path to IP2Location subdivision CSV database
    */
-  async loadDbReader(dbPath, subdivisionCsvPath) {
+  private async loadDbReader(dbPath: string, subdivisionCsvPath?: string): Promise<void> {
     if (this.dbReader_) {
       this.log_.debug(`[${LOG_TAG}] IP2Location database reader appears to be available already`);
     }
@@ -73,10 +57,9 @@ export default class GwaIP2Location {
 
   /**
    * Get IP2Location database result for IP
-   * @param {string} ip IPv4 or IPv6 address to lookup
-   * @returns {Promise<import('ip2ldb-reader').Ip2lData?>} IP2Location database result
+   * @param ip IPv4 or IPv6 address to lookup
    */
-  async get(ip) {
+  public async get(ip: string): Promise<Ip2lData | null> {
     if (!this.dbReader_) {
       await this.loadDbReader(this.dbPath_, this.subdivisionCsvPath_);
     }
@@ -84,7 +67,7 @@ export default class GwaIP2Location {
       throw new Error('loadDbReader completed without populating IP2Location dbReader');
     }
 
-    let ip2lResult;
+    let ip2lResult: Ip2lData;
     try {
       ip2lResult = this.dbReader_.get(ip);
       if (!ip2lResult) {
@@ -99,25 +82,24 @@ export default class GwaIP2Location {
   }
 
   /**
-   *
-   * @param {import('ip2ldb-reader').Ip2lData?} ip2lResult Result of IP2Location database search
-   * @param {string} output Output value to fetch from database
-   * @returns {?string} Output value
+   * Get a specific string value from the result of an IP2Location database search
+   * @param ip2lResult Result of IP2Location database search
+   * @param output Output value to fetch from database
    */
-  getStringValue(ip2lResult, output) {
+  public getStringValue(ip2lResult: Ip2lData | null, output: string): string | null {
     if (!ip2lResult) {
       return null;
     }
 
     if (output === 'country') {
-      if (!Object.keys(ip2lResult).includes('country_short')) {
+      if (!('country' in ip2lResult)) {
         return null;
       }
       return ip2lResult.country_short || '';
     }
 
     if (output === 'subdivision') {
-      if (!Object.keys(ip2lResult).includes('subdivision')) {
+      if (!('subdivision' in ip2lResult)) {
         return null;
       }
       return ip2lResult.subdivision || '';
@@ -127,4 +109,4 @@ export default class GwaIP2Location {
   }
 }
 
-export {GwaIP2Location};
+export {GwaIP2Location, IP2LocationOptions};

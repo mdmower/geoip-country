@@ -3,24 +3,41 @@
     "es2020": true,
     "node": true
   },
-  "extends": ["prettier", "plugin:jsdoc/recommended"],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "sourceType": "module"
+    "sourceType": "module",
+    "project": "tsconfig.json"
   },
-  "plugins": ["jsdoc", "prettier"],
+  "plugins": ["@typescript-eslint", "jsdoc", "prettier"],
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier",
+    "plugin:jsdoc/recommended"
+  ],
   "rules": {
     "prettier/prettier": ["error"],
-    "no-undef": "error",
     "no-var": "error",
+    "prefer-const": [
+      "error",
+      {
+        "destructuring": "all"
+      }
+    ],
+    "@typescript-eslint/no-inferrable-types": "off",
+    "jsdoc/require-jsdoc": [
+      "error",
+      {
+        "checkConstructors": false,
+        "contexts": ["MethodDefinition", "FunctionDeclaration"]
+      }
+    ],
     "jsdoc/check-syntax": 1,
     "jsdoc/newline-after-description": 0,
+    "jsdoc/check-types": 0,
+    "jsdoc/require-returns": 0,
     "jsdoc/require-returns-description": 0,
-    "jsdoc/check-types": [
-      2,
-      {
-        "noDefaults": true
-      }
-    ]
+    "jsdoc/require-param-type": 0
   },
   "settings": {
     "jsdoc": {

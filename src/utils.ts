@@ -4,11 +4,10 @@ import {sep} from 'path';
 
 /**
  * Convert *nix shell ~ path to absolute path
- * @param {string} path Filesystem path
- * @returns {string}
+ * @param path Filesystem path
  */
-function expandTildePath(path) {
-  if (typeof path !== 'string' || path[0] !== '~' || sep !== '/') {
+function expandTildePath(path: string): string {
+  if (!path || path[0] !== '~' || sep !== '/') {
     return path;
   }
 
@@ -39,25 +38,31 @@ function expandTildePath(path) {
  * 3.437 User Name
  * 3.282 Portable Filename Character Set
  * https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html
- * @param {string} user Username to check
- * @returns {boolean}
- * @private
+ * @param user Username to check
  */
-function isPosixUsername(user) {
+function isPosixUsername(user: string): boolean {
   return /^[\w.][\w.\-]*$/.test(user);
 }
 
 /**
  * Assert path exists and is readable
- * @param {string} path Filesystem path to file or directory
- * @param {number} mode Accessibility check to perform
+ * @param path Filesystem path to file or directory
+ * @param mode FS accessibility check to perform
  */
-function assertPath(path, mode = constants.F_OK) {
-  if (typeof path !== 'string' || !path) {
+function assertPath(path: string, mode: number = constants.F_OK): void {
+  if (!path.trim()) {
     throw new Error('Path not defined');
   }
   accessSync(path, mode);
 }
 
-export {expandTildePath, assertPath};
-export default {expandTildePath, assertPath};
+/**
+ * Get the keys of an interface (object) with their types intact
+ * @param obj Object with typed keys
+ */
+function typedKeys<T>(obj: T): (keyof T)[] {
+  return Object.keys(obj) as (keyof T)[];
+}
+
+export {expandTildePath, assertPath, typedKeys};
+export default {expandTildePath, assertPath, typedKeys};

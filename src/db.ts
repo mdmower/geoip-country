@@ -1,64 +1,70 @@
-import {GwaMaxMind} from './db-interface/maxmind';
+import {DbInterface} from './db-interface/dbi';
+import {GeoIpApiResponse, LookupResponse} from './server';
 import {GwaIP2Location} from './db-interface/ip2location';
 import {GwaLog} from './log';
+import {GwaMaxMind} from './db-interface/maxmind';
+import {IP2LocationOptions} from './db-interface/ip2location';
+import {MaxMindOptions} from './db-interface/maxmind';
 import {isIP} from 'net';
 
-/** @constant */
 const LOG_TAG = 'GwaDb';
+
+export enum DbProvider {
+  UNKNOWN,
+  MAXMIND,
+  IP2LOCATION,
+}
 
 /**
  * Options for GwaDb initialization
- * @typedef GwaDbOptions
- * @property {DbProvider} dbProvider Database provider
- * @property {import('./db-interface/maxmind').MaxMindOptions} [maxMindOptions] MaxMind database and reader options
- * @property {import('./db-interface/ip2location').IP2LocationOptions} [ip2LocationOptions] IP2Location database and reader options
  */
+interface GwaDbOptions {
+  /**
+   * Database provider
+   */
+  dbProvider: DbProvider;
 
-/** @enum {number} */
-export const DbProvider = {
-  UNKNOWN: 0,
-  MAXMIND: 1,
-  IP2LOCATION: 2,
-};
+  /**
+   * MaxMind database and reader options
+   */
+  maxMindOptions?: MaxMindOptions;
+
+  /**
+   * IP2Location database and reader options
+   */
+  ip2LocationOptions?: IP2LocationOptions;
+}
 
 export default class GwaDb {
+  private dbProvider_: DbProvider;
+  private dbInterface_: DbInterface;
+  private enabledOutputs_: string[];
+
   /**
-   * @param {GwaDbOptions} dbOptions Database and reader options
-   * @param {Array<string>} enabledOutputs Values to be included in response
-   * @param {GwaLog} log Log instance
+   * @param dbOptions Database and reader options
+   * @param enabledOutputs Values to be included in response
+   * @param log_ Log instance
    */
-  constructor(dbOptions, enabledOutputs, log) {
-    /**
-     * @private
-     */
-    this.log_ = log;
-
-    /**
-     * @private
-     */
+  constructor(dbOptions: GwaDbOptions, enabledOutputs: string[], private log_: GwaLog) {
     this.dbProvider_ = DbProvider.MAXMIND;
-
-    /**
-     * @private
-     */
     this.dbInterface_ = this.getDbInterface(dbOptions);
-
-    /**
-     * @private
-     */
     this.enabledOutputs_ = enabledOutputs;
   }
 
   /**
    * Identify and construct relevant DB interface
    * @param {GwaDbOptions} gwaDbOptions Database and reader options
-   * @returns {GwaMaxMind|GwaIP2Location}
-   * @private
    */
-  getDbInterface(gwaDbOptions) {
+  private getDbInterface(gwaDbOptions: GwaDbOptions): DbInterface {
     if (gwaDbOptions.dbProvider === DbProvider.MAXMIND) {
+      if (!gwaDbOptions.maxMindOptions) {
+        throw new Error(`[${LOG_TAG}] MaxMind database indicated but options not available`);
+      }
       return new GwaMaxMind(gwaDbOptions.maxMindOptions, this.log_);
     } else if (gwaDbOptions.dbProvider === DbProvider.IP2LOCATION) {
+      if (!gwaDbOptions.ip2LocationOptions) {
+        throw new Error(`[${LOG_TAG}] IP2Location database indicated but options not available`);
+      }
       return new GwaIP2Location(gwaDbOptions.ip2LocationOptions, this.log_);
     }
 
@@ -68,13 +74,11 @@ export default class GwaDb {
   /**
    * Get database result for ip
    * @param {string} ip IPv4 or IPv6 address to lookup
-   * @returns {Promise<!import('./server').LookupResponse>} IP lookup result
    */
-  async lookup(ip) {
+  async lookup(ip: string): Promise<LookupResponse> {
     const ipVersion = isIP(ip);
 
-    /** @type {import('./server').LookupResponse} */
-    const ret = {
+    const ret: LookupResponse = {
       error: null,
       geoIpApiResponse: this.geoIpApiResponse(null, ip, ipVersion),
     };
@@ -92,7 +96,7 @@ export default class GwaDb {
       return ret;
     }
 
-    let dbResult = await this.dbInterface_.get(ip);
+    const dbResult = await this.dbInterface_.get(ip);
     if (!dbResult) {
       ret.error = `Failed to search database for IP: ${ip}`;
       return ret;
@@ -105,14 +109,16 @@ export default class GwaDb {
 
   /**
    * Build a GeoApiResponse object
-   * @param {any} dbResult Result of database search
-   * @param {?string} ip Request IP
-   * @param {?number} ipVersion Request IP version
-   * @returns {import('./server').GeoIpApiResponse} GeoIP API response
+   * @param dbResult Result of database search
+   * @param ip Request IP
+   * @param ipVersion Request IP version
    */
-  geoIpApiResponse(dbResult, ip, ipVersion) {
-    /** @type {import('./server').GeoIpApiResponse} */
-    const ret = {};
+  geoIpApiResponse(
+    dbResult: unknown | null,
+    ip: string | null,
+    ipVersion: number | null
+  ): GeoIpApiResponse {
+    const ret: GeoIpApiResponse = {};
 
     this.enabledOutputs_.forEach((output) => {
       switch (output) {
@@ -142,4 +148,4 @@ export default class GwaDb {
   }
 }
 
-export {GwaDb};
+export {GwaDb, GwaDbOptions};

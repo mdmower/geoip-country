@@ -1,39 +1,40 @@
 import {GwaLog} from './log';
 import {URL} from 'url';
 
-/** @constant */
 const LOG_TAG = 'GwaCors';
 
-export default class GwaCors {
+/**
+ * Options for GwaCors initialization
+ */
+interface CorsOptions {
   /**
-   * @param {Object} options Cross-origin requests options
-   * @param {?Array<string>} options.origins Origins array for allowed cross-origin requests
-   * @param {?(RegExp|string)} options.originRegEx Origin RegEx for allowed cross-origin requests
-   * @param {GwaLog} log Log instance
+   * Array of allowed CORS origins
    */
-  constructor(options, log) {
-    /**
-     * @private
-     */
-    this.log_ = log;
+  origins: string[] | null;
 
-    /**
-     * @private
-     */
-    this.origins_ = this.sanitizeOrigins(options.origins);
+  /**
+   * RegEx test for allowed CORS origins
+   */
+  originRegEx: RegExp | string | null;
+}
 
-    /**
-     * @private
-     */
-    this.originRegEx_ = this.parseOriginsRegEx(options.originRegEx);
+export default class GwaCors {
+  private origins_: string[] | null;
+  private originRegEx_: RegExp | null;
+  /**
+   * @param options Cross-origin requests options
+   * @param log_ Log instance
+   */
+  constructor(options: CorsOptions, private log_: GwaLog) {
+    this.origins_ = this.sanitizeOrigins(options.origins || null);
+    this.originRegEx_ = this.parseOriginsRegEx(options.originRegEx || null);
   }
 
   /**
    * Validate URL format of each entry in an array of origins and return the sanitized entries
-   * @param {?Array<string>} origins Origins array
-   * @returns {?Array<string>}
+   * @param origins Origins array
    */
-  sanitizeOrigins(origins) {
+  sanitizeOrigins(origins: string[] | null): string[] | null {
     if (!Array.isArray(origins)) {
       return null;
     }
@@ -56,18 +57,17 @@ export default class GwaCors {
 
   /**
    * Set the origins array for allowed cross-origin requests
-   * @param {?Array<string>} origins Origins array
+   * @param  origins Origins array
    */
-  setOrigins(origins) {
+  setOrigins(origins: string[] | null): void {
     this.origins_ = this.sanitizeOrigins(origins);
   }
 
   /**
    * Construct (if necessary) the RegEx origin test
-   * @param {?(RegExp|string)} originRegEx Origins RegEx
-   * @returns {?RegExp}
+   * @param originRegEx Origins RegEx
    */
-  parseOriginsRegEx(originRegEx) {
+  parseOriginsRegEx(originRegEx: RegExp | string | null): RegExp | null {
     if (typeof originRegEx === 'string') {
       try {
         return new RegExp(originRegEx, 'i');
@@ -83,18 +83,17 @@ export default class GwaCors {
 
   /**
    * Set the origins RegEx for allowed cross-origin requests
-   * @param {?(RegExp|string)} originRegEx Origins RegEx
+   * @param originRegEx Origins RegEx
    */
-  setOriginRegEx(originRegEx) {
+  setOriginRegEx(originRegEx: RegExp | string | null): void {
     this.originRegEx_ = this.parseOriginsRegEx(originRegEx);
   }
 
   /**
    * Check whether origin is an allowed CORS origin
-   * @param {string} origin Origin header value from HTTP request
-   * @returns {boolean}
+   * @param origin Origin header value from HTTP request
    */
-  isCorsOrigin(origin) {
+  isCorsOrigin(origin: string): boolean {
     return (
       Boolean(origin) &&
       ((Array.isArray(this.origins_) && this.origins_.includes(origin)) ||
@@ -107,7 +106,7 @@ export default class GwaCors {
    * @param {string|undefined} origin Origin header value from HTTP request
    * @returns {?Object.<string, string>}
    */
-  getCorsHeaders(origin) {
+  getCorsHeaders(origin?: string): {[header: string]: string} | null {
     return origin && this.isCorsOrigin(origin)
       ? {
           'Access-Control-Allow-Origin': origin,
@@ -116,4 +115,4 @@ export default class GwaCors {
   }
 }
 
-export {GwaCors};
+export {GwaCors, CorsOptions};
