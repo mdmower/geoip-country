@@ -38,21 +38,6 @@ interface GeoIpApiResponse {
   data?: unknown;
 }
 
-/**
- * Location lookup response
- */
-interface LookupResponse {
-  /**
-   * Error (if any) encountered during IP lookup
-   */
-  error: string | null;
-
-  /**
-   * GeoIP API response
-   */
-  geoIpApiResponse: GeoIpApiResponse | null;
-}
-
 class GwaServer {
   private log_: GwaLog;
   private cors_: GwaCors;
@@ -222,4 +207,4 @@ class GwaServer {
   }
 }
 
-export {GwaServer, GeoIpApiResponse, LookupResponse};
+export {GwaServer, GeoIpApiResponse};

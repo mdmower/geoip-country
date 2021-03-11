@@ -26,8 +26,8 @@ export default class GwaCors {
    * @param log_ Log instance
    */
   constructor(options: CorsOptions, private log_: GwaLog) {
-    this.origins_ = this.sanitizeOrigins(options.origins || null);
-    this.originRegEx_ = this.parseOriginsRegEx(options.originRegEx || null);
+    this.origins_ = this.sanitizeOrigins(options.origins);
+    this.originRegEx_ = this.parseOriginsRegEx(options.originRegEx);
   }
 
   /**
@@ -72,7 +72,7 @@ export default class GwaCors {
       try {
         return new RegExp(originRegEx, 'i');
       } catch (ex) {
-        this.log_.error(`[${LOG_TAG}] Failed to origin RegEx\n`, ex);
+        this.log_.error(`[${LOG_TAG}] Failed to construct origin RegEx\n`, ex);
       }
     } else if (originRegEx instanceof RegExp) {
       return originRegEx;

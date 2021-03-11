@@ -26,10 +26,29 @@ interface AppOptions {
    * Individual outputs that should be included in the response
    */
   enabledOutputs: {
+    /**
+     * Enable country code output
+     */
     country: boolean;
+
+    /**
+     * Enable subdivision code output
+     */
     subdivision: boolean;
+
+    /**
+     * Enable IP output
+     */
     ip: boolean;
+
+    /**
+     * Enable IP number output
+     */
     ip_version: boolean;
+
+    /**
+     * Enable raw data output from DB lookup
+     */
     data: boolean;
   };
 
@@ -124,8 +143,7 @@ function overlayOptions(unsafeSrc?: any): AppOptions {
   const enabledOutputs =
     src.enabledOutputs instanceof Object ? (src.enabledOutputs as Record<string, any>) : undefined;
   if (enabledOutputs) {
-    const typedOutputs = typedKeys(target.enabledOutputs);
-    typedOutputs.forEach((output) => {
+    typedKeys(target.enabledOutputs).forEach((output) => {
       const outputValue =
         typeof enabledOutputs[output] === 'boolean'
           ? (enabledOutputs[output] as boolean)

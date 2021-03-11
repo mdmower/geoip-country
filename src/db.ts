@@ -1,5 +1,5 @@
 import {DbInterface} from './db-interface/dbi';
-import {GeoIpApiResponse, LookupResponse} from './server';
+import {GeoIpApiResponse} from './server';
 import {GwaIP2Location} from './db-interface/ip2location';
 import {GwaLog} from './log';
 import {GwaMaxMind} from './db-interface/maxmind';
@@ -33,6 +33,21 @@ interface GwaDbOptions {
    * IP2Location database and reader options
    */
   ip2LocationOptions?: IP2LocationOptions;
+}
+
+/**
+ * Location lookup response
+ */
+interface LookupResponse {
+  /**
+   * Error (if any) encountered during IP lookup
+   */
+  error: string | null;
+
+  /**
+   * GeoIP API response
+   */
+  geoIpApiResponse: GeoIpApiResponse | null;
 }
 
 export default class GwaDb {
@@ -148,4 +163,4 @@ export default class GwaDb {
   }
 }
 
-export {GwaDb, GwaDbOptions};
+export {GwaDb, GwaDbOptions, LookupResponse};

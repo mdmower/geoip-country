@@ -7,7 +7,7 @@ interface DbInterface {
 
   /**
    * Get a specific string value from the result of a database search
-   * @param mmResult Result of database search
+   * @param dbResult Result of database search
    * @param output Output value to fetch from database
    */
   getStringValue(dbResult: unknown, output: string): string | null;

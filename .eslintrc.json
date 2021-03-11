@@ -25,11 +25,27 @@
       }
     ],
     "@typescript-eslint/no-inferrable-types": "off",
-    "jsdoc/require-jsdoc": [
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/explicit-module-boundary-types": [
       "error",
       {
-        "checkConstructors": false,
-        "contexts": ["MethodDefinition", "FunctionDeclaration"]
+        "allowArgumentsExplicitlyTypedAsAny": true
+      }
+    ],
+    "jsdoc/require-jsdoc": 1,
+    "jsdoc/require-param": [
+      "error",
+      {
+        "contexts": [
+          "FunctionExpression",
+          "TSFunctionExpression",
+          "FunctionDeclaration",
+          "TSFunctionDeclaration",
+          "MethodSignature",
+          "TSMethodSignature",
+          "ArrowFunctionExpression",
+          "TSArrowFunctionExpression"
+        ]
       }
     ],
     "jsdoc/check-syntax": 1,

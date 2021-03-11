@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import minimist from 'minimist';
+import {AppOptions, getDefaultOptions, overlayOptions} from './options';
 import {GwaServer} from './server';
 import {assertPath, expandTildePath} from './utils';
 import {createInterface} from 'readline';
-import {AppOptions, getDefaultOptions, overlayOptions} from './options';
 import {readFileSync} from 'fs';
 
 const LOG_TAG = 'GwaCli';
@@ -34,9 +34,7 @@ class GwaCli {
     }
 
     // Verify database available and exit early if not
-    const dbPath =
-      (options.maxmind.dbPath && expandTildePath(options.maxmind.dbPath)) ||
-      (options.ip2location.dbPath && expandTildePath(options.ip2location.dbPath));
+    const dbPath = options.maxmind.dbPath || options.ip2location.dbPath;
     try {
       assertPath(dbPath);
     } catch (ex) {
@@ -53,7 +51,7 @@ class GwaCli {
    * @param path Path to custom configuration file
    */
   private getUserOptions(path: string): AppOptions {
-    if (!path.trim()) {
+    if (!path) {
       return getDefaultOptions();
     }
 
@@ -73,7 +71,7 @@ try {
       output: process.stdout,
     });
 
-    rl.on('SIGINT', function () {
+    rl.on('SIGINT', () => {
       process.exit(0);
     });
   }
